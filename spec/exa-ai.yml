@@ -1,0 +1,1015 @@
+openapi: 3.0.3
+info:
+  title: Exa AI API
+  description: >-
+    Exa is a custom search engine built for AI agents and applications. The API
+    provides web search, content extraction, similarity search, question
+    answering, and asynchronous deep research capabilities.
+  version: "1.0.0"
+  contact:
+    name: Exa AI
+    url: https://www.exa.ai
+    email: hello@exa.ai
+
+servers:
+  - url: https://api.exa.ai
+    description: Production
+
+security:
+  - apiKey: []
+
+tags:
+  - name: search
+    description: Web search with natural language queries
+  - name: contents
+    description: Content extraction from URLs
+  - name: find-similar
+    description: Find similar web pages by URL
+  - name: answer
+    description: LLM-powered question answering with citations
+  - name: research
+    description: Asynchronous deep research tasks
+
+paths:
+  /search:
+    post:
+      operationId: search
+      tags: [search]
+      summary: Search the web
+      description: >-
+        Search the web using natural language queries. Returns matching pages
+        with optional content extraction. Supports multiple search types,
+        categories, domain/date/text filters, deep search with structured
+        outputs, and inline content retrieval.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        "400":
+          description: Bad request — invalid parameters or unsupported filter for category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /contents:
+    post:
+      operationId: getContents
+      tags: [contents]
+      summary: Extract content from URLs
+      description: >-
+        Get full page contents, summaries, and metadata for a list of URLs.
+        Returns instant results from cache with automatic live crawling as
+        fallback for uncached pages. Note: text, highlights, and summary are
+        top-level parameters (not nested under contents).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContentsRequest"
+      responses:
+        "200":
+          description: OK — check statuses array for per-URL errors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentsResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /findSimilar:
+    post:
+      operationId: findSimilar
+      tags: [find-similar]
+      summary: Find similar links
+      description: >-
+        Find web pages similar to the provided URL and optionally return the
+        contents of the pages.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FindSimilarRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FindSimilarResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /answer:
+    post:
+      operationId: answer
+      tags: [answer]
+      summary: Get an LLM answer to a question
+      description: >-
+        Performs an Exa search and uses an LLM to generate either a direct answer
+        for specific queries or a detailed summary with citations for open-ended
+        queries. Supports streaming (stream=true) and structured output via
+        outputSchema.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnswerRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnswerResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /research/v1:
+    post:
+      operationId: createResearchTask
+      tags: [research]
+      summary: Create a research task
+      description: >-
+        Create an asynchronous research task that explores the web, gathers
+        sources, synthesises findings, and returns results with citations.
+        Returns immediately with a researchId for polling.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateResearchRequest"
+      responses:
+        "201":
+          description: Research request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchTask"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    get:
+      operationId: listResearchTasks
+      tags: [research]
+      summary: List research tasks
+      description: >-
+        Retrieve a paginated list of research tasks ordered by creation time
+        (newest first).
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+            minLength: 1
+          description: Pagination cursor
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 50
+          description: Results per page (1-50)
+      responses:
+        "200":
+          description: List of research tasks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListResearchResponse"
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /research/v1/{researchId}:
+    get:
+      operationId: getResearchTask
+      tags: [research]
+      summary: Get a research task
+      description: >-
+        Retrieve the status and results of a previously created research task.
+        Poll until status is completed, canceled, or failed.
+      parameters:
+        - name: researchId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique research task identifier
+        - name: stream
+          in: query
+          schema:
+            type: string
+          description: Set to "true" for real-time SSE updates
+        - name: events
+          in: query
+          schema:
+            type: string
+          description: Set to "true" to include detailed event log
+      responses:
+        "200":
+          description: Research task status and results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchTask"
+        "401":
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Research task not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: >-
+        API key provided via x-api-key header or Authorization header with
+        Bearer scheme.
+
+  schemas:
+    # ── Search ──────────────────────────────────────────────
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          description: Natural language search query
+          example: "Latest developments in LLM capabilities"
+        type:
+          type: string
+          enum: [neural, fast, auto, deep, deep-reasoning, instant]
+          default: auto
+          description: Search algorithm tier
+        category:
+          type: string
+          enum: [company, research paper, news, personal site, financial report, people]
+          description: Data-type filter focus
+        numResults:
+          type: integer
+          default: 10
+          maximum: 100
+          description: Number of results to return
+        userLocation:
+          type: string
+          description: Two-letter ISO country code (e.g., US)
+          example: "US"
+        includeDomains:
+          type: array
+          items:
+            type: string
+          maxItems: 1200
+          description: Only return results from these domains
+        excludeDomains:
+          type: array
+          items:
+            type: string
+          maxItems: 1200
+          description: Exclude results from these domains
+        startPublishedDate:
+          type: string
+          format: date-time
+          description: Only links published after this date (ISO 8601)
+        endPublishedDate:
+          type: string
+          format: date-time
+          description: Only links published before this date (ISO 8601)
+        startCrawlDate:
+          type: string
+          format: date-time
+          description: Only links crawled after this date (ISO 8601)
+        endCrawlDate:
+          type: string
+          format: date-time
+          description: Only links crawled before this date (ISO 8601)
+        includeText:
+          type: array
+          items:
+            type: string
+          description: Strings that must appear in results (max 1 string, 5 words)
+        excludeText:
+          type: array
+          items:
+            type: string
+          description: Strings that must not appear in results (max 1 string, 5 words)
+        moderation:
+          type: boolean
+          default: false
+          description: Filter unsafe content from results
+        additionalQueries:
+          type: array
+          items:
+            type: string
+          description: Extra query variations for deep search only
+        systemPrompt:
+          type: string
+          description: Deep-search-only instructions for search planning and synthesis
+        outputSchema:
+          type: object
+          description: >-
+            JSON Schema for structured output.content (deep search only).
+            Max nesting depth 2, max 10 properties.
+        contents:
+          $ref: "#/components/schemas/SearchContentsOptions"
+
+    SearchContentsOptions:
+      type: object
+      description: Content extraction configuration (nested under contents on /search)
+      properties:
+        text:
+          oneOf:
+            - type: boolean
+            - $ref: "#/components/schemas/TextOptions"
+          description: Full page text as markdown
+        highlights:
+          oneOf:
+            - type: boolean
+            - $ref: "#/components/schemas/HighlightsOptions"
+          description: Key excerpts relevant to query
+        summary:
+          oneOf:
+            - type: boolean
+            - $ref: "#/components/schemas/SummaryOptions"
+          description: LLM-generated summary
+        livecrawlTimeout:
+          type: integer
+          default: 10000
+          description: Livecrawl timeout in milliseconds
+        maxAgeHours:
+          type: integer
+          description: >-
+            Max cache age in hours. 0 = always livecrawl. -1 = never livecrawl.
+            Omit for default (livecrawl as fallback).
+        subpages:
+          type: integer
+          default: 0
+          description: Number of subpages to crawl per result
+        subpageTarget:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: Keywords to prioritise for subpage selection
+        extras:
+          type: object
+          properties:
+            links:
+              type: integer
+              default: 0
+              description: Number of URLs to extract per page
+            imageLinks:
+              type: integer
+              default: 0
+              description: Number of image URLs to extract per page
+
+    TextOptions:
+      type: object
+      properties:
+        maxCharacters:
+          type: integer
+          description: Character limit for returned text
+        includeHtmlTags:
+          type: boolean
+          default: false
+          description: Preserve HTML tags in output
+        verbosity:
+          type: string
+          enum: [compact, standard, full]
+          default: compact
+          description: Text verbosity level
+        includeSections:
+          type: array
+          items:
+            type: string
+            enum: [header, navigation, banner, body, sidebar, footer, metadata]
+          description: Only include these page sections
+        excludeSections:
+          type: array
+          items:
+            type: string
+            enum: [header, navigation, banner, body, sidebar, footer, metadata]
+          description: Exclude these page sections
+
+    HighlightsOptions:
+      type: object
+      properties:
+        maxCharacters:
+          type: integer
+          description: Maximum characters for all highlights combined per URL
+          example: 4000
+        query:
+          type: string
+          description: Custom query to direct highlight selection
+
+    SummaryOptions:
+      type: object
+      properties:
+        query:
+          type: string
+          description: Custom query for the summary
+        schema:
+          type: object
+          description: JSON Schema (Draft 7) for structured summary output
+
+    SearchResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+          description: Unique request identifier
+          example: "b5947044c4b78efa9552a7c89b306d95"
+        searchType:
+          type: string
+          enum: [neural, deep, deep-reasoning]
+          description: Which search type was selected (for auto queries)
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchResult"
+          description: List of matched pages
+        output:
+          $ref: "#/components/schemas/DeepOutput"
+        costDollars:
+          $ref: "#/components/schemas/CostDollars"
+
+    SearchResult:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Page title
+        url:
+          type: string
+          description: Page URL
+        id:
+          type: string
+          description: Document ID (same as URL)
+        publishedDate:
+          type: string
+          nullable: true
+          description: Estimated publication date (ISO 8601)
+        author:
+          type: string
+          nullable: true
+          description: Author if available
+        image:
+          type: string
+          description: Associated image URL
+        favicon:
+          type: string
+          description: Favicon URL for the domain
+        text:
+          type: string
+          description: Full page text as markdown (if text requested)
+        highlights:
+          type: array
+          items:
+            type: string
+          description: Key excerpts (if highlights requested)
+        highlightScores:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Cosine similarity scores for each highlight
+        summary:
+          type: string
+          description: LLM-generated summary (if summary requested)
+        subpages:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchResult"
+          description: Nested results from subpage crawling
+        extras:
+          type: object
+          properties:
+            links:
+              type: array
+              items:
+                type: string
+              description: Extracted hyperlinks
+            imageLinks:
+              type: array
+              items:
+                type: string
+              description: Extracted image URLs
+
+    DeepOutput:
+      type: object
+      description: Synthesised output for deep/deep-reasoning search types
+      properties:
+        content:
+          description: >-
+            Synthesised answer. String by default, structured JSON object when
+            outputSchema is provided.
+        grounding:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroundingItem"
+          description: Field-level citations and confidence scores
+
+    GroundingItem:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field path (e.g., "content", "companies[0].funding")
+        citations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Citation"
+        confidence:
+          type: string
+          enum: [low, medium, high]
+
+    Citation:
+      type: object
+      properties:
+        url:
+          type: string
+        title:
+          type: string
+
+    # ── Contents ────────────────────────────────────────────
+    ContentsRequest:
+      type: object
+      required: [urls]
+      properties:
+        urls:
+          type: array
+          items:
+            type: string
+          description: Array of URLs to extract content from
+        ids:
+          type: array
+          items:
+            type: string
+          description: Alias for urls (backward compatible with document IDs)
+        text:
+          oneOf:
+            - type: boolean
+            - $ref: "#/components/schemas/TextOptions"
+          description: Full page text as markdown
+        highlights:
+          oneOf:
+            - type: boolean
+            - $ref: "#/components/schemas/HighlightsOptions"
+          description: Key excerpts relevant to query
+        summary:
+          oneOf:
+            - type: boolean
+            - $ref: "#/components/schemas/SummaryOptions"
+          description: LLM-generated summary
+        maxAgeHours:
+          type: integer
+          description: >-
+            Max cache age in hours. 0 = always livecrawl. -1 = never livecrawl.
+        livecrawlTimeout:
+          type: integer
+          default: 10000
+          description: Livecrawl timeout in milliseconds
+        subpages:
+          type: integer
+          default: 0
+          description: Number of subpages to crawl per URL
+        subpageTarget:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: Keywords to prioritise for subpage selection
+        extras:
+          type: object
+          properties:
+            links:
+              type: integer
+              default: 0
+              description: Number of URLs to extract per page
+            imageLinks:
+              type: integer
+              default: 0
+              description: Number of image URLs to extract per page
+
+    ContentsResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+          description: Unique request identifier
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchResult"
+        statuses:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentStatus"
+          description: Per-URL status information — always check for errors
+        costDollars:
+          $ref: "#/components/schemas/CostDollars"
+
+    ContentStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The requested URL
+        status:
+          type: string
+          enum: [success, error]
+        error:
+          type: object
+          properties:
+            tag:
+              type: string
+              enum:
+                - CRAWL_NOT_FOUND
+                - CRAWL_TIMEOUT
+                - CRAWL_LIVECRAWL_TIMEOUT
+                - SOURCE_NOT_AVAILABLE
+                - UNSUPPORTED_URL
+                - CRAWL_UNKNOWN_ERROR
+            httpStatusCode:
+              type: integer
+              nullable: true
+
+    # ── Find Similar ────────────────────────────────────────
+    FindSimilarRequest:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          description: The URL to find similar pages for
+          example: "https://arxiv.org/abs/2307.06435"
+        numResults:
+          type: integer
+          default: 10
+          maximum: 100
+          description: Number of results to return
+        includeDomains:
+          type: array
+          items:
+            type: string
+          maxItems: 1200
+        excludeDomains:
+          type: array
+          items:
+            type: string
+          maxItems: 1200
+        startPublishedDate:
+          type: string
+          format: date-time
+        endPublishedDate:
+          type: string
+          format: date-time
+        startCrawlDate:
+          type: string
+          format: date-time
+        endCrawlDate:
+          type: string
+          format: date-time
+        includeText:
+          type: array
+          items:
+            type: string
+        excludeText:
+          type: array
+          items:
+            type: string
+        moderation:
+          type: boolean
+          default: false
+        contents:
+          $ref: "#/components/schemas/SearchContentsOptions"
+
+    FindSimilarResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchResult"
+        costDollars:
+          $ref: "#/components/schemas/CostDollars"
+
+    # ── Answer ──────────────────────────────────────────────
+    AnswerRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          minLength: 1
+          description: The question or query to answer
+          example: "What is the latest valuation of SpaceX?"
+        stream:
+          type: boolean
+          default: false
+          description: Return response as SSE stream
+        text:
+          type: boolean
+          default: false
+          description: Include full text content in citations
+        outputSchema:
+          type: object
+          description: >-
+            JSON Schema (Draft 7) for structured answer. When provided, the
+            answer is returned as a structured object instead of a plain string.
+
+    AnswerResponse:
+      type: object
+      properties:
+        answer:
+          description: >-
+            The generated answer. String by default, or structured object
+            matching the provided outputSchema.
+          example: "$350 billion."
+        citations:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnswerCitation"
+        costDollars:
+          $ref: "#/components/schemas/CostDollars"
+
+    AnswerCitation:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        title:
+          type: string
+        author:
+          type: string
+        publishedDate:
+          type: string
+        text:
+          type: string
+          description: Page text (if text=true requested)
+        image:
+          type: string
+        favicon:
+          type: string
+
+    # ── Research ────────────────────────────────────────────
+    CreateResearchRequest:
+      type: object
+      required: [instructions]
+      properties:
+        instructions:
+          type: string
+          maxLength: 4096
+          description: Research instructions
+        model:
+          type: string
+          enum: [exa-research-fast, exa-research, exa-research-pro]
+          default: exa-research
+          description: Research model tier
+        outputSchema:
+          type: object
+          description: JSON Schema for structured research output
+
+    ResearchTask:
+      type: object
+      required: [researchId, createdAt, instructions, status]
+      properties:
+        researchId:
+          type: string
+          description: Unique identifier for tracking
+        createdAt:
+          type: number
+          description: Unix timestamp in milliseconds
+        instructions:
+          type: string
+          description: Original research instructions
+        status:
+          type: string
+          enum: [pending, running, completed, canceled, failed]
+        model:
+          type: string
+          enum: [exa-research-fast, exa-research, exa-research-pro]
+          default: exa-research
+        outputSchema:
+          type: object
+          description: JSON Schema used for output validation
+        output:
+          description: Research results (when completed). String or object per outputSchema.
+        sources:
+          type: array
+          items:
+            type: object
+          description: Sources referenced (when completed)
+        events:
+          type: array
+          items:
+            type: object
+          description: Detailed event log (when events=true)
+
+    ListResearchResponse:
+      type: object
+      required: [data, hasMore, nextCursor]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResearchTask"
+          description: Research tasks ordered by creation time (newest first)
+        hasMore:
+          type: boolean
+          description: Whether more results exist
+        nextCursor:
+          type: string
+          nullable: true
+          description: Cursor for next page
+
+    # ── Shared ──────────────────────────────────────────────
+    CostDollars:
+      type: object
+      properties:
+        total:
+          type: number
+          format: float
+          description: Total dollar cost for the request
+        breakDown:
+          type: array
+          items:
+            type: object
+            properties:
+              search:
+                type: number
+                format: float
+              contents:
+                type: number
+                format: float
+              breakdown:
+                type: object
+                properties:
+                  neuralSearch:
+                    type: number
+                    format: float
+                  deepSearch:
+                    type: number
+                    format: float
+                  contentText:
+                    type: number
+                    format: float
+                  contentHighlight:
+                    type: number
+                    format: float
+                  contentSummary:
+                    type: number
+                    format: float
+        perRequestPrices:
+          type: object
+          properties:
+            neuralSearch_1_10_results:
+              type: number
+              format: float
+            neuralSearch_additional_result:
+              type: number
+              format: float
+            deepSearch:
+              type: number
+              format: float
+            deepReasoningSearch:
+              type: number
+              format: float
+        perPagePrices:
+          type: object
+          properties:
+            contentText:
+              type: number
+              format: float
+            contentHighlight:
+              type: number
+              format: float
+            contentSummary:
+              type: number
+              format: float
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message describing the issue

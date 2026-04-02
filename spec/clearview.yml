@@ -1,0 +1,2762 @@
+openapi: 3.0.3
+info:
+  title: Clearview API
+  version: 1.0.0
+  description: API for Clearview AI facial recognition services
+  contact:
+    name: Clearview AI
+    email: help@clearview.ai
+    url: https://www.clearview.ai
+
+servers:
+  - url: https://app.clearview.ai
+    description: Production
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: >-
+        API Key passed as a Bearer Token on every request.
+        Authorization: Bearer <your_api_key>
+
+  schemas:
+    PaginationEnvelope:
+      type: object
+      properties:
+        api_version:
+          type: string
+        id:
+          type: string
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items: {}
+            next_page_token:
+              type: string
+              nullable: true
+              description: Token for next page; null when no more pages.
+            total_items:
+              type: integer
+              description: Approximate total item count.
+
+    OwnerProxy:
+      type: object
+      properties:
+        owner_proxy_id:
+          type: string
+          format: uuid
+        owner_proxy_kind:
+          type: string
+          description: "Type: user, user_group, or organisation"
+
+    UserSummary:
+      type: object
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        owner_proxy_id:
+          type: string
+          format: uuid
+        owner_proxy_kind:
+          type: string
+        phone_number:
+          type: string
+        role_type:
+          type: integer
+          enum: [0, 1, 4, 5]
+        suspended:
+          type: integer
+        user_id:
+          type: string
+          format: uuid
+
+    User:
+      allOf:
+        - $ref: '#/components/schemas/UserSummary'
+        - type: object
+          properties:
+            ar_passphrase:
+              type: string
+            banner_text:
+              type: string
+            disabled_app_notifications:
+              type: array
+              items:
+                type: string
+            disabled_email_notifications:
+              type: array
+              items:
+                type: string
+            feature_hierarchy:
+              type: string
+            gallery_coalition_contact:
+              type: boolean
+            last_login_ts:
+              type: integer
+              description: Unix timestamp
+            last_search_ts:
+              type: integer
+              description: Unix timestamp
+            needs_to_setup_2fa_method:
+              type: string
+            opened_by_me_count:
+              type: integer
+            phone_verified:
+              type: boolean
+            popup_actions:
+              type: object
+            preferred_2fa_method:
+              type: string
+              enum: [email, sms, totp]
+            search_count_queried:
+              type: integer
+            title:
+              type: string
+            totp_setup:
+              type: string
+            ts:
+              type: integer
+              description: Unix timestamp
+            user_email_change_count:
+              type: string
+            verified:
+              type: boolean
+            user_groups:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserGroup'
+
+    UserGroup:
+      type: object
+      properties:
+        user_group_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        investigation_sharing:
+          type: boolean
+
+    Coalition:
+      type: object
+      properties:
+        coalition_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        owner_proxy_id:
+          type: string
+          format: uuid
+        owner_proxy_kind:
+          type: string
+        ts:
+          type: integer
+
+    CompanySSO:
+      type: object
+      properties:
+        company_sso_id:
+          type: string
+          format: uuid
+        company_id:
+          type: string
+          format: uuid
+        sso_type:
+          type: string
+        active:
+          type: boolean
+        redirect_uri:
+          type: string
+        configuration_error:
+          type: string
+        saml_settings:
+          type: object
+        saml_idp_xml_metadata:
+          type: string
+        saml_idp_entity_id:
+          type: string
+        saml_idp_sls_url:
+          type: string
+        saml_idp_sso_url:
+          type: string
+        saml_idp_x509_cert:
+          type: string
+        sp_entity_id:
+          type: string
+        oauth_authorization_url:
+          type: string
+        oauth_token_url:
+          type: string
+        oauth_resource_url:
+          type: string
+        oauth_client_id:
+          type: string
+        oauth_client_secret:
+          type: string
+        oauth_scope:
+          type: string
+        oauth_state:
+          type: string
+        oauth_parameters:
+          type: object
+        oauth_use_authorization_bearer:
+          type: boolean
+
+    ConfigurableSchema:
+      type: object
+      properties:
+        schema_id:
+          type: string
+          format: uuid
+        schema_type_id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+        name:
+          type: string
+        ts:
+          type: integer
+        report_section_title:
+          type: string
+        configurable_schema_id:
+          type: string
+          format: uuid
+
+    Company:
+      type: object
+      properties:
+        company_id:
+          type: string
+          format: uuid
+        owner_proxy_id:
+          type: string
+          format: uuid
+        owner_proxy_kind:
+          type: string
+        name:
+          type: string
+        default_user_group_id:
+          type: string
+          format: uuid
+        domain:
+          type: string
+        domains:
+          type: array
+          items:
+            type: string
+        early_access:
+          type: boolean
+        company_type:
+          type: integer
+        ts:
+          type: integer
+        country:
+          type: string
+        state:
+          type: string
+        banner_text:
+          type: string
+        enrollment_flow:
+          type: string
+        investigation_sharing:
+          type: boolean
+        require_investigation_outcome:
+          type: boolean
+        available_features:
+          type: string
+        feature_overrides:
+          type: object
+        feature_hierarchy:
+          type: string
+        occupied_seats:
+          type: integer
+        organization_type:
+          type: string
+        industry:
+          type: string
+        has_purge:
+          type: boolean
+        has_peer_review:
+          type: boolean
+        configurable_schema_id:
+          type: string
+          format: uuid
+        configurable_probe_enrollment_schema:
+          $ref: '#/components/schemas/ConfigurableSchema'
+        coalitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coalition'
+        company_sso:
+          $ref: '#/components/schemas/CompanySSO'
+
+    Face:
+      type: object
+      properties:
+        blob_id:
+          type: string
+          format: uuid
+        face_id:
+          type: string
+          format: uuid
+        fqa_score:
+          type: number
+        blob_kind:
+          type: string
+        rect:
+          type: array
+          items:
+            type: string
+        size:
+          type: string
+        ts:
+          type: integer
+        url:
+          type: string
+
+    ImageData:
+      type: object
+      properties:
+        width:
+          type: integer
+        height:
+          type: integer
+        original_image_url:
+          type: string
+        image_url:
+          type: string
+        ts:
+          type: integer
+        md5:
+          type: string
+        bblob_start_offset:
+          type: integer
+        bblob_end_offset:
+          type: integer
+
+    LinkData:
+      type: object
+      properties:
+        link:
+          type: string
+        raw_id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        link_type:
+          type: string
+        alt_text:
+          type: string
+
+    ProfileData:
+      type: object
+      properties:
+        name:
+          type: string
+        bio:
+          type: string
+        handle:
+          type: string
+        link:
+          type: string
+
+    MatchData:
+      type: object
+      properties:
+        sim:
+          type: number
+        group:
+          type: number
+        group_sim:
+          type: number
+        dist:
+          type: number
+        rect:
+          type: array
+          items:
+            type: number
+        fqa_score:
+          type: number
+        num_faces:
+          type: integer
+        face_id:
+          type: string
+        face_type:
+          type: string
+
+    CollectionDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+        version:
+          type: integer
+
+    GalleryData:
+      type: object
+      properties:
+        gallery_id:
+          type: integer
+        gallery_item_id:
+          type: integer
+        gallery_name:
+          type: string
+        is_coalition:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        properties:
+          type: array
+          items:
+            type: string
+
+    SearchConnectionData:
+      type: object
+      properties:
+        outbound_search_connection_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+
+    SearchResult:
+      type: object
+      properties:
+        search_result_id:
+          type: string
+        blob_id:
+          type: string
+        sensitive:
+          type: boolean
+        image_data:
+          $ref: '#/components/schemas/ImageData'
+        link_data:
+          $ref: '#/components/schemas/LinkData'
+        profile_data:
+          $ref: '#/components/schemas/ProfileData'
+        collection_details:
+          $ref: '#/components/schemas/CollectionDetails'
+        collection_data:
+          type: object
+        match_data:
+          $ref: '#/components/schemas/MatchData'
+        gallery_data:
+          $ref: '#/components/schemas/GalleryData'
+        search_connection_data:
+          $ref: '#/components/schemas/SearchConnectionData'
+
+    SearchQuery:
+      type: object
+      properties:
+        face_type:
+          type: string
+        queried_blob_md5:
+          type: string
+        queried_face_md5:
+          type: string
+        queried_reps_md5:
+          type: string
+
+    SearchMetadata:
+      type: object
+      properties:
+        search_type:
+          type: string
+        search_origin:
+          type: string
+        search_name:
+          type: string
+        investigation_id:
+          type: string
+          format: uuid
+        custom_log_id:
+          type: string
+        deconfliction_enabled:
+          type: boolean
+        hopped_from_search_history_id:
+          type: string
+          format: uuid
+        hop_reason:
+          type: string
+
+    RemoteSearchError:
+      type: object
+      properties:
+        outbound_search_connection_name:
+          type: string
+        message:
+          type: string
+
+    PeerReview:
+      type: object
+      properties:
+        peer_review_id:
+          type: string
+          format: uuid
+        search_history_id:
+          type: string
+          format: uuid
+        complete:
+          type: string
+        results_data:
+          type: object
+        archived:
+          type: boolean
+        ts:
+          type: integer
+        updated_ts:
+          type: integer
+
+    DeconflictionShare:
+      type: object
+      properties:
+        deconfliction_share_id:
+          type: string
+          format: uuid
+        ts:
+          type: integer
+
+    GuestSharedSearch:
+      type: object
+      properties:
+        guest_shared_searches_id:
+          type: string
+          format: uuid
+        search_history_id:
+          type: string
+          format: uuid
+        guest_email:
+          type: string
+        guest_name:
+          type: string
+        sent_email:
+          type: boolean
+        share_limit_exceeded:
+          type: boolean
+        expires_ts:
+          type: integer
+        revoked:
+          type: boolean
+        token:
+          type: string
+        ts:
+          type: integer
+
+    SearchHistoryItem:
+      type: object
+      properties:
+        search_history_id:
+          type: string
+          format: uuid
+        investigation_id:
+          type: string
+          format: uuid
+        search_name:
+          type: string
+        search_success:
+          type: boolean
+        ts:
+          type: integer
+        last_search_ts:
+          type: integer
+        last_alert_ts:
+          type: integer
+        num_matches:
+          type: integer
+        num_similar:
+          type: integer
+        num_local_matches:
+          type: integer
+        num_local_similar:
+          type: integer
+        num_remote_matches:
+          type: integer
+        num_remote_similar:
+          type: integer
+        num_gallery_matches:
+          type: integer
+        num_external_gallery_matches:
+          type: integer
+        hidden:
+          type: boolean
+        hop_reason:
+          type: string
+        hopped_from_search_history_id:
+          type: string
+          format: uuid
+        enhanced_image_id:
+          type: string
+          format: uuid
+        video_import_id:
+          type: string
+        alerts:
+          type: boolean
+        auth_type:
+          type: integer
+        app_version:
+          type: string
+        device:
+          type: string
+        device_type:
+          type: integer
+        ipaddr:
+          type: string
+        user_agent:
+          type: string
+        udid:
+          type: string
+        creator_id:
+          type: string
+          format: uuid
+        photo_source:
+          type: integer
+        search_origin:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        face:
+          $ref: '#/components/schemas/Face'
+        faces_session_token:
+          type: string
+        peer_review:
+          $ref: '#/components/schemas/PeerReview'
+        deconfliction_share:
+          $ref: '#/components/schemas/DeconflictionShare'
+        guest_shared_searches:
+          type: array
+          items:
+            $ref: '#/components/schemas/GuestSharedSearch'
+        investigation:
+          type: object
+          properties:
+            investigation_id:
+              type: string
+              format: uuid
+            title:
+              type: string
+        user:
+          $ref: '#/components/schemas/UserSummary'
+
+    SearchResultFull:
+      type: object
+      properties:
+        search_result_id:
+          type: string
+          format: uuid
+        search_history_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        auth_type:
+          type: integer
+        ts:
+          type: integer
+        app_version:
+          type: string
+        device:
+          type: string
+        device_type:
+          type: integer
+        ipaddr:
+          type: string
+        user_agent:
+          type: string
+        udid:
+          type: string
+        num_matches:
+          type: integer
+        num_similar:
+          type: integer
+        num_gallery_matches:
+          type: integer
+        num_external_gallery_matches:
+          type: integer
+        num_local_matches:
+          type: integer
+        num_local_similar:
+          type: integer
+        num_remote_matches:
+          type: integer
+        num_remote_similar:
+          type: integer
+        search_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+        remote_search_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+
+    SearchUpload:
+      type: object
+      properties:
+        blob_id:
+          type: string
+          format: uuid
+        upload_blob_id:
+          type: string
+          format: uuid
+        blob_kind:
+          type: string
+        original_filename:
+          type: string
+        has_original:
+          type: boolean
+        ts:
+          type: integer
+        url:
+          type: string
+        errors:
+          type: array
+          items:
+            type: string
+        exif:
+          type: object
+        height:
+          type: integer
+        width:
+          type: integer
+        investigation_id:
+          type: string
+          format: uuid
+        pending:
+          type: boolean
+        owner:
+          $ref: '#/components/schemas/OwnerProxy'
+        faces:
+          type: array
+          items:
+            $ref: '#/components/schemas/Face'
+
+    InvestigationFeedback:
+      type: object
+      properties:
+        investigation_feedback_id:
+          type: string
+          format: uuid
+        investigation_id:
+          type: string
+          format: uuid
+        last_reviewer_user_id:
+          type: string
+          format: uuid
+        investigation_feedback_type:
+          type: integer
+        led_to_identification:
+          type: boolean
+        led_to_location:
+          type: boolean
+        led_to_associate_identification:
+          type: boolean
+        expanded_knowledge:
+          type: boolean
+        other_result:
+          type: string
+        created_ts:
+          type: integer
+        updated_ts:
+          type: integer
+
+    Policy:
+      type: object
+      properties:
+        operation:
+          type: string
+        principal_id:
+          type: string
+          format: uuid
+        principal_name:
+          type: string
+        principal_email:
+          type: string
+        principal_proxy_kind:
+          type: string
+
+    Investigation:
+      type: object
+      properties:
+        investigation_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        ts:
+          type: integer
+        updated_ts:
+          type: integer
+        in_progress:
+          type: boolean
+        investigation_success:
+          type: boolean
+        comments:
+          type: string
+        category:
+          type: string
+        creator:
+          $ref: '#/components/schemas/UserSummary'
+        search_history_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchHistoryItem'
+        probe_enrollment_form:
+          type: object
+          properties:
+            form_type:
+              type: string
+        owner:
+          $ref: '#/components/schemas/OwnerProxy'
+        policies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Policy'
+        investigation_feedback:
+          $ref: '#/components/schemas/InvestigationFeedback'
+
+    GallerySearchConfig:
+      type: object
+      properties:
+        similarity_threshold:
+          type: number
+
+    Gallery:
+      type: object
+      properties:
+        gallery_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        configurable_schema_id:
+          type: string
+          format: uuid
+        configurable_schema:
+          $ref: '#/components/schemas/ConfigurableSchema'
+        ts:
+          type: integer
+        owner:
+          $ref: '#/components/schemas/OwnerProxy'
+        created_by:
+          $ref: '#/components/schemas/UserSummary'
+        num_items:
+          type: integer
+        item_quota:
+          type: integer
+        search_config:
+          $ref: '#/components/schemas/GallerySearchConfig'
+
+    FieldValue:
+      type: object
+      properties:
+        field_id:
+          type: string
+        value:
+          {}
+
+    GalleryPhoto:
+      type: object
+      properties:
+        gallery_photo_id:
+          type: string
+          format: uuid
+        blob_id:
+          type: string
+          format: uuid
+        blob_kind:
+          type: string
+        original_filename:
+          type: string
+        has_original:
+          type: boolean
+        ts:
+          type: integer
+        url:
+          type: string
+        first_face_rect:
+          type: string
+        owner:
+          $ref: '#/components/schemas/OwnerProxy'
+        faces:
+          type: array
+          items:
+            $ref: '#/components/schemas/Face'
+
+    GalleryTag:
+      type: object
+      properties:
+        gallery_tag_id:
+          type: string
+          format: uuid
+        label:
+          type: string
+        color:
+          type: string
+
+    GalleryItem:
+      type: object
+      properties:
+        gallery_item_id:
+          type: string
+          format: uuid
+        gallery_id:
+          type: string
+          format: uuid
+        ts:
+          type: integer
+        custom_id:
+          type: string
+        gallery_agent_import_id:
+          type: string
+          format: uuid
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldValue'
+        schema:
+          $ref: '#/components/schemas/ConfigurableSchema'
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/GalleryPhoto'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/GalleryTag'
+
+    Job:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        job_type:
+          type: string
+        status:
+          type: string
+        job_return:
+          type: object
+        creator_id:
+          type: string
+          format: uuid
+        params:
+          type: object
+        progress:
+          type: string
+        messages:
+          type: string
+        created_ts:
+          type: integer
+        updated_ts:
+          type: integer
+
+    CustomLog:
+      type: object
+      properties:
+        custom_log_id:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+        ts:
+          type: integer
+        user:
+          $ref: '#/components/schemas/UserSummary'
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: string
+
+  parameters:
+    OrganizationId:
+      name: organization_id
+      in: query
+      schema:
+        type: string
+        format: uuid
+      description: The organization id. Should almost always be the calling user's organization.
+    UserGroupId:
+      name: user_group_id
+      in: query
+      schema:
+        type: string
+        format: uuid
+      description: Filter to items owned by members of this user group.
+    UserId:
+      name: user_id
+      in: query
+      schema:
+        type: string
+        format: uuid
+      description: Filter to items owned by this user.
+    PageToken:
+      name: page_token
+      in: query
+      schema:
+        type: string
+      description: Token from previous page response. Omit for first page.
+    MaxPageSize:
+      name: max_page_size
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 10
+      description: Maximum items per page. Server may return fewer.
+    SortBy:
+      name: sort_by
+      in: query
+      schema:
+        type: string
+        default: ts
+      description: Field to sort by (defaults to 'ts').
+    SortOrder:
+      name: sort_order
+      in: query
+      schema:
+        type: string
+        enum: [ascending, descending]
+        default: descending
+      description: Sort direction.
+
+  responses:
+    BadRequest:
+      description: Malformed request, most likely a validation error.
+    Unauthorized:
+      description: The requester doesn't have permission to perform this action.
+    Forbidden:
+      description: The request is unauthenticated.
+    NotFound:
+      description: The specified resource doesn't exist.
+    InternalError:
+      description: The server encountered an unexpected condition.
+
+tags:
+  - name: authentication
+    description: Read the current authentication status and permissions.
+  - name: searches
+    description: Search faces from an image or URL and find matches.
+  - name: secure_searches
+    description: Ephemeral face searches without creating search history.
+  - name: search_results
+    description: Retrieve and manage face search results.
+  - name: search_history
+    description: Browse and manage search history records.
+  - name: search_uploads
+    description: Upload and manage probe images.
+  - name: faces
+    description: Get face rectangles from uploaded images or results.
+  - name: investigations
+    description: Create and manage investigation case folders.
+  - name: galleries
+    description: Create and manage private watchlist galleries.
+  - name: gallery_items
+    description: Manage items within galleries.
+  - name: gallery_photos
+    description: Upload photos for gallery items.
+  - name: gallery_tags
+    description: Create and manage gallery tags.
+  - name: company_jobs
+    description: Organisation-level jobs and data exports.
+  - name: users
+    description: User management and administration.
+
+paths:
+  /auth:
+    get:
+      tags: [authentication]
+      summary: Check authentication status
+      description: >-
+        Read the current authentication status and permissions for the logged-in user.
+        When called with an API key, always returns 200.
+      operationId: getAuth
+      responses:
+        '200':
+          description: Authentication status with User and Company objects.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      logged_in:
+                        type: boolean
+                      user:
+                        $ref: '#/components/schemas/User'
+                      company:
+                        $ref: '#/components/schemas/Company'
+                      banner_text:
+                        type: string
+                      enums:
+                        type: object
+                      gitbook_token:
+                        type: string
+                      gitbook_url:
+                        type: string
+                      has_mobile_app:
+                        type: boolean
+                      license:
+                        type: object
+                      popups:
+                        type: object
+                      config:
+                        type: object
+                      client_fp:
+                        type: string
+                      feature_flags:
+                        type: object
+
+  /api/v1/searches:
+    post:
+      tags: [searches]
+      summary: Perform face search
+      description: >-
+        Search faces from an image or URL and find matches in Clearview's database.
+        Supports search by url, file (multipart), face_id, or search_history_id.
+      operationId: createSearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [input]
+              properties:
+                input:
+                  type: object
+                  description: Search items specification.
+                  properties:
+                    items:
+                      type: array
+                      maxItems: 1
+                      items:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            enum: [url, face_id, search_history_id]
+                          url:
+                            type: string
+                          face_id:
+                            type: string
+                            format: uuid
+                          blob_id:
+                            type: string
+                            format: uuid
+                          face_type:
+                            type: string
+                            enum: [upload, camera, checkin, main_index, gallery, collection]
+                          search_history_id:
+                            type: string
+                            format: uuid
+                metadata:
+                  type: object
+                  properties:
+                    search_name:
+                      type: string
+                    search_origin:
+                      type: string
+                sources:
+                  type: object
+                  description: Controls which indexes to search.
+                  properties:
+                    main_index:
+                      oneOf:
+                        - type: boolean
+                        - type: object
+                          properties:
+                            include_types:
+                              type: array
+                              items:
+                                type: integer
+                            exclude_domains:
+                              type: array
+                              items:
+                                type: string
+                    galleries:
+                      oneOf:
+                        - type: boolean
+                        - type: object
+                          properties:
+                            include_ids:
+                              type: array
+                              items:
+                                type: string
+                            exclude_ids:
+                              type: array
+                              items:
+                                type: string
+                    collections:
+                      oneOf:
+                        - type: boolean
+                        - type: object
+                          properties:
+                            include_ids:
+                              type: array
+                              items:
+                                type: string
+                    search_connections:
+                      type: object
+                      properties:
+                        include_ids:
+                          type: array
+                          items:
+                            type: string
+                        exclude_ids:
+                          type: array
+                          items:
+                            type: string
+                options:
+                  type: object
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Search summary response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      search_query:
+                        $ref: '#/components/schemas/SearchQuery'
+                      search_metadata:
+                        $ref: '#/components/schemas/SearchMetadata'
+                      remote_search_errors:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RemoteSearchError'
+                      search_results:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SearchResult'
+                      local_search_results:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SearchResult'
+                      remote_search_results:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SearchResult'
+                      num_matches:
+                        type: integer
+                      num_similar:
+                        type: integer
+                      num_gallery_matches:
+                        type: integer
+                      num_external_gallery_similar:
+                        type: integer
+                      local_num_matches:
+                        type: integer
+                      local_num_similar:
+                        type: integer
+                      remote_num_matches:
+                        type: integer
+                      remote_num_similar:
+                        type: integer
+                      search_history_item:
+                        $ref: '#/components/schemas/SearchHistoryItem'
+
+  /api/v1/secure_searches:
+    post:
+      tags: [secure_searches]
+      summary: Perform secure (ephemeral) search
+      description: >-
+        Search faces without creating a search history item. No persistent record
+        is created unless a custom_log_id is provided.
+      operationId: createSecureSearch
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [type, face_type]
+              properties:
+                type:
+                  type: string
+                  enum: [file]
+                face_type:
+                  type: string
+                  enum: [upload, camera, checkin, main_index, gallery, collection]
+                file:
+                  type: string
+                  format: binary
+                search_mode:
+                  type: string
+                  enum: [fast, exhaustive]
+                  default: fast
+                custom_log_id:
+                  type: string
+      responses:
+        '200':
+          description: Search summary response (same shape as regular search minus search_history_item).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      search_query:
+                        $ref: '#/components/schemas/SearchQuery'
+                      search_metadata:
+                        $ref: '#/components/schemas/SearchMetadata'
+                      remote_search_errors:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RemoteSearchError'
+                      search_results:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SearchResult'
+                      local_search_results:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SearchResult'
+                      remote_search_results:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SearchResult'
+    get:
+      tags: [secure_searches]
+      summary: List secure search logs
+      description: Retrieve minimal audit logs for secure searches that used custom_log_id.
+      operationId: listSecureSearches
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - $ref: '#/components/parameters/UserGroupId'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: A paged list of custom log entries.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CustomLog'
+                      next_page_token:
+                        type: string
+                        nullable: true
+                      total_items:
+                        type: integer
+
+  /api/v1/search_results:
+    get:
+      tags: [search_results]
+      summary: List search results
+      operationId: listSearchResults
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - $ref: '#/components/parameters/UserGroupId'
+        - $ref: '#/components/parameters/UserId'
+        - name: search_history_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A paged list of search results.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SearchResultFull'
+                      next_page_token:
+                        type: string
+                        nullable: true
+                      total_items:
+                        type: integer
+
+  /api/v1/search_results/{search_result_id}:
+    get:
+      tags: [search_results]
+      summary: Get a search result
+      operationId: getSearchResult
+      parameters:
+        - name: search_result_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/OrganizationId'
+        - $ref: '#/components/parameters/UserGroupId'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: The search result object.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/SearchResultFull'
+    patch:
+      tags: [search_results]
+      summary: Update user-specific data for a search result
+      operationId: updateSearchResult
+      parameters:
+        - name: search_result_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      blob_id:
+                        type: string
+                      read_ts:
+                        type: integer
+                      curation_status:
+                        type: string
+                        enum: [neutral, positive, negative]
+      responses:
+        '200':
+          description: The updated search result object.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/SearchResultFull'
+
+  /api/v1/search_history:
+    get:
+      tags: [search_history]
+      summary: List search history
+      operationId: listSearchHistory
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - $ref: '#/components/parameters/UserGroupId'
+        - $ref: '#/components/parameters/UserId'
+        - name: investigation_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: after_ts
+          in: query
+          schema:
+            type: integer
+        - name: before_ts
+          in: query
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/PageToken'
+        - $ref: '#/components/parameters/MaxPageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: A paged list of search history items.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SearchHistoryItem'
+                      next_page_token:
+                        type: string
+                        nullable: true
+                      total_items:
+                        type: integer
+
+  /api/v1/search_history/{search_history_id}:
+    get:
+      tags: [search_history]
+      summary: Get a search history item
+      operationId: getSearchHistoryItem
+      parameters:
+        - name: search_history_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The search history item.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/SearchHistoryItem'
+    patch:
+      tags: [search_history]
+      summary: Update a search history item
+      operationId: updateSearchHistoryItem
+      parameters:
+        - name: search_history_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: The updated search history item.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/SearchHistoryItem'
+
+  /api/v1/search_uploads:
+    post:
+      tags: [search_uploads]
+      summary: Upload a probe image
+      description: >-
+        Upload a photo for face detection. Returns blob_id and face_id(s) for
+        use in targeted face searches.
+      operationId: createSearchUpload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                investigation_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: The created search upload object with detected faces.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/SearchUpload'
+    get:
+      tags: [search_uploads]
+      summary: List search uploads
+      operationId: listSearchUploads
+      parameters:
+        - $ref: '#/components/parameters/PageToken'
+        - $ref: '#/components/parameters/MaxPageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: A paged list of search upload objects.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SearchUpload'
+                      next_page_token:
+                        type: string
+                        nullable: true
+                      total_items:
+                        type: integer
+
+  /api/v1/search_uploads/{blob_id}:
+    get:
+      tags: [search_uploads]
+      summary: Get a search upload
+      operationId: getSearchUpload
+      parameters:
+        - name: blob_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The upload blob object.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/SearchUpload'
+    delete:
+      tags: [search_uploads]
+      summary: Delete a search upload
+      description: >-
+        Delete an upload by blob_id. Cannot delete if the upload has been used in a search.
+      operationId: deleteSearchUpload
+      parameters:
+        - name: blob_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/search_uploads_bulk:
+    post:
+      tags: [search_uploads]
+      summary: Bulk upload probe images
+      description: Upload multiple files at once for face detection and search.
+      operationId: createBulkSearchUpload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [investigation_id]
+              properties:
+                investigation_id:
+                  type: string
+                  format: uuid
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                urls:
+                  type: string
+                  description: "Comma-separated image URLs"
+      responses:
+        '201':
+          description: Created. Returns a job for the bulk import.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+
+  /api/v1/faces:
+    get:
+      tags: [faces]
+      summary: Get face rectangles from a blob
+      description: Get faces detected in an uploaded image or search result.
+      operationId: getFaces
+      parameters:
+        - name: blob_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The blob id (uploaded file or search result).
+        - name: result_type
+          in: query
+          schema:
+            type: string
+            enum: [main_index, gallery, collection]
+            default: main_index
+      responses:
+        '200':
+          description: A list of faces.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            blob_id:
+                              type: string
+                            face_id:
+                              type: string
+                            rect:
+                              type: array
+                              items:
+                                type: number
+                      next_page_token:
+                        type: string
+                        nullable: true
+                      total_items:
+                        type: integer
+
+  /api/v1/investigations:
+    post:
+      tags: [investigations]
+      summary: Create an investigation
+      description: >-
+        Create a case folder. Simplest usage: provide just the category field.
+        Full enrollment forms are configurable per organisation.
+      operationId: createInvestigation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                configurable_enrollment:
+                  type: object
+                  properties:
+                    configurable_schema_id:
+                      type: string
+                    values:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/FieldValue'
+                category:
+                  type: string
+                  description: Free-text category label.
+                owner_id:
+                  type: string
+                  format: uuid
+                  description: Owner proxy id (user, user group, or org).
+      responses:
+        '201':
+          description: The created investigation object.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Investigation'
+    get:
+      tags: [investigations]
+      summary: List investigations
+      operationId: listInvestigations
+      parameters:
+        - name: creator_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/OrganizationId'
+        - $ref: '#/components/parameters/UserGroupId'
+        - $ref: '#/components/parameters/UserId'
+        - name: owner_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter to items explicitly owned by this proxy id.
+        - name: in_progress
+          in: query
+          schema:
+            type: boolean
+        - name: investigation_success
+          in: query
+          schema:
+            type: boolean
+        - name: enrollment_complete
+          in: query
+          schema:
+            type: boolean
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: before_ts
+          in: query
+          schema:
+            type: integer
+        - name: after_ts
+          in: query
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/PageToken'
+        - $ref: '#/components/parameters/MaxPageSize'
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: A paged list of investigations.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Investigation'
+                      next_page_token:
+                        type: string
+                        nullable: true
+                      total_items:
+                        type: integer
+
+  /api/v1/investigations/{investigation_id}:
+    get:
+      tags: [investigations]
+      summary: Get an investigation
+      operationId: getInvestigation
+      parameters:
+        - name: investigation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The investigation object.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Investigation'
+    delete:
+      tags: [investigations]
+      summary: Delete an investigation
+      operationId: deleteInvestigation
+      parameters:
+        - name: investigation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      tags: [investigations]
+      summary: Update an investigation
+      operationId: updateInvestigation
+      parameters:
+        - name: investigation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: The updated investigation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Investigation'
+
+  /api/v1/galleries:
+    post:
+      tags: [galleries]
+      summary: Create a gallery
+      operationId: createGallery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                configurable_schema_id:
+                  type: string
+                  format: uuid
+                owner_id:
+                  type: string
+                  format: uuid
+                search_config:
+                  $ref: '#/components/schemas/GallerySearchConfig'
+      responses:
+        '201':
+          description: The created gallery object.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Gallery'
+    get:
+      tags: [galleries]
+      summary: List galleries
+      operationId: listGalleries
+      parameters:
+        - $ref: '#/components/parameters/PageToken'
+        - $ref: '#/components/parameters/MaxPageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: A paged list of galleries.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Gallery'
+                      next_page_token:
+                        type: string
+                        nullable: true
+                      total_items:
+                        type: integer
+
+  /api/v1/galleries/{gallery_id}:
+    get:
+      tags: [galleries]
+      summary: Get a gallery
+      operationId: getGallery
+      parameters:
+        - name: gallery_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The gallery object.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Gallery'
+    delete:
+      tags: [galleries]
+      summary: Delete a gallery
+      operationId: deleteGallery
+      parameters:
+        - name: gallery_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      tags: [galleries]
+      summary: Update a gallery
+      operationId: updateGallery
+      parameters:
+        - name: gallery_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: The updated gallery.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Gallery'
+
+  /api/v1/gallery_items:
+    post:
+      tags: [gallery_items]
+      summary: Create a gallery item
+      operationId: createGalleryItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gallery_id:
+                  type: string
+                  format: uuid
+                photos:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                tags:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                values:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/FieldValue'
+                custom_id:
+                  type: string
+      responses:
+        '201':
+          description: The created gallery item.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/GalleryItem'
+    get:
+      tags: [gallery_items]
+      summary: List gallery items
+      operationId: listGalleryItems
+      parameters:
+        - name: gallery_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by gallery.
+        - name: tag_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by tag across all galleries.
+        - $ref: '#/components/parameters/PageToken'
+        - $ref: '#/components/parameters/MaxPageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: A paged list of gallery items.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/GalleryItem'
+                      next_page_token:
+                        type: string
+                        nullable: true
+                      total_items:
+                        type: integer
+
+  /api/v1/gallery_items/{gallery_item_id}:
+    get:
+      tags: [gallery_items]
+      summary: Get a gallery item
+      operationId: getGalleryItem
+      parameters:
+        - name: gallery_item_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The gallery item object.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/GalleryItem'
+    delete:
+      tags: [gallery_items]
+      summary: Delete a gallery item
+      operationId: deleteGalleryItem
+      parameters:
+        - name: gallery_item_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      tags: [gallery_items]
+      summary: Update a gallery item
+      operationId: updateGalleryItem
+      parameters:
+        - name: gallery_item_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tags:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                photos:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    format: uuid
+                values:
+                  type: array
+                  minItems: 1
+                  items:
+                    $ref: '#/components/schemas/FieldValue'
+      responses:
+        '200':
+          description: The updated gallery item.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/GalleryItem'
+
+  /api/v1/gallery_items_bulk:
+    post:
+      tags: [gallery_items]
+      summary: Bulk import gallery items
+      description: >-
+        Create multiple gallery items at once. data[] array must match files[]
+        array in length and order.
+      operationId: createBulkGalleryItems
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [gallery_id]
+              properties:
+                gallery_id:
+                  type: string
+                  format: uuid
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                data[]:
+                  type: array
+                  items:
+                    type: string
+                  description: JSON strings with values for each file (1:1 mapping).
+                gallery_agent_import_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: The job for the bulk import.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Job'
+
+  /api/v1/gallery_photos:
+    post:
+      tags: [gallery_photos]
+      summary: Upload a gallery photo
+      operationId: createGalleryPhoto
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                search_history_id:
+                  type: string
+                  format: uuid
+                lat:
+                  oneOf:
+                    - type: string
+                    - type: number
+                lng:
+                  oneOf:
+                    - type: string
+                    - type: number
+      responses:
+        '201':
+          description: The created gallery photo object.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/GalleryPhoto'
+
+  /api/v1/gallery_tags:
+    post:
+      tags: [gallery_tags]
+      summary: Create a gallery tag
+      operationId: createGalleryTag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [label, color]
+              properties:
+                label:
+                  type: string
+                color:
+                  type: string
+                  description: Hex colour value.
+      responses:
+        '201':
+          description: The created gallery tag.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/GalleryTag'
+    get:
+      tags: [gallery_tags]
+      summary: List gallery tags
+      operationId: listGalleryTags
+      parameters:
+        - $ref: '#/components/parameters/PageToken'
+        - $ref: '#/components/parameters/MaxPageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: A paged list of gallery tags.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/GalleryTag'
+                      next_page_token:
+                        type: string
+                        nullable: true
+                      total_items:
+                        type: integer
+
+  /api/v1/organization_exports:
+    post:
+      tags: [company_jobs]
+      summary: Export organization data
+      description: >-
+        Request a full data export for the organisation. Multiple export requests
+        can coexist.
+      operationId: createOrganizationExport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [organization_id]
+              properties:
+                organization_id:
+                  type: string
+                  description: UUID of organisation to create export for.
+                immediate:
+                  type: boolean
+      responses:
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/users:
+    get:
+      tags: [users]
+      summary: List users
+      description: Get all users, scoped by organisation, group, or search criteria.
+      operationId: listUsers
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - $ref: '#/components/parameters/UserGroupId'
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by user name or email.
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [csv]
+          description: Set to csv to generate a CSV user report.
+        - name: company_type
+          in: query
+          schema:
+            type: string
+          description: Filter by company type (only when format=csv).
+        - name: state
+          in: query
+          schema:
+            type: string
+          description: Filter by state (only when format=csv).
+        - name: active
+          in: query
+          schema:
+            type: boolean
+          description: If true, return only unsuspended users.
+        - name: gallery_coalition_contact
+          in: query
+          schema:
+            type: boolean
+          description: If true, return only gallery coalition contacts.
+        - $ref: '#/components/parameters/PageToken'
+        - $ref: '#/components/parameters/MaxPageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: A paged list of users (or CSV download).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+                      next_page_token:
+                        type: string
+                        nullable: true
+                      total_items:
+                        type: integer
+
+  /api/v1/users/{user_id}:
+    get:
+      tags: [users]
+      summary: Get a user
+      description: Get a user by id, or pass "me" for the logged-in user.
+      operationId: getUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User UUID or "me" for logged-in user.
+      responses:
+        '200':
+          description: The user object.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+    patch:
+      tags: [users]
+      summary: Update a user
+      operationId: updateUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User UUID or "me".
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                title:
+                  type: string
+                phone_number:
+                  type: string
+                  description: E.164 format phone number.
+                company_id:
+                  type: string
+                  format: uuid
+                preferred_2fa_method:
+                  type: string
+                  enum: [email, sms, totp]
+                current_password:
+                  type: string
+                new_password:
+                  type: string
+                new_password_confirm:
+                  type: string
+                role_type:
+                  type: integer
+                  enum: [0, 1, 4, 5]
+                suspended:
+                  type: number
+                enabled_features:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                set_feature_override:
+                  type: object
+                  properties:
+                    company:
+                      type: string
+                    default_enabled:
+                      type: boolean
+                    effective_level:
+                      type: string
+                    feature:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        label:
+                          type: string
+                        default_enabled:
+                          type: boolean
+                    user:
+                      type: string
+                    user_group:
+                      type: string
+                popup_actions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      popup_name:
+                        type: string
+                      accepted:
+                        type: boolean
+                banner_text:
+                  type: string
+                  nullable: true
+                gallery_coalition_contact:
+                  type: boolean
+                  nullable: true
+                totp_code:
+                  type: string
+                disabled_app_notifications:
+                  type: array
+                  items:
+                    type: string
+                disabled_email_notifications:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: The updated user.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api_version:
+                    type: string
+                  id:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
